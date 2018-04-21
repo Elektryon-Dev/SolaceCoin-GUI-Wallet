@@ -15,7 +15,7 @@ from utils.common import getHomeDir, makeDir
 
 USER_AGENT = "Solace GUI Wallet"
 APP_NAME = "Solace GUI Wallet"
-VERSION = [1, 0, 0]
+VERSION = [1, 2, 0]
 
 
 _data_dir = makeDir(os.path.join(getHomeDir(), 'SolaceGUI'))

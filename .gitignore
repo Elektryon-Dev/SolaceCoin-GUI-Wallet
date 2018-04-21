@@ -6,7 +6,6 @@
 /tags
 /log
 /logs
-/__pycache__
 
 # vim swap files
 *.swp
@@ -42,7 +41,6 @@ cscope.po.out
 *.so
 *.dylib
 *.dll
-*.pyc
 
 # Fortran module files
 *.mod
@@ -57,7 +55,6 @@ cscope.po.out
 *.exe
 *.out
 *.app
-*.rar
 
 
 ### CMake ###
