@@ -41,6 +41,8 @@ password_regex = re.compile(r"^([a-zA-Z0-9!@#\$%\^&\*]{1,256})$")
 from webui import LogViewer
 
 class Hub(QObject):
+    current_block_height = 0
+    
     def __init__(self, app):
         super(Hub, self).__init__()
         self.app = app
@@ -112,15 +114,16 @@ class Hub(QObject):
         self.ui.wallet_info.is_loaded =True
         self.ui.wallet_info.save()
         self.ui.run_wallet_rpc(wallet_password, 1)
+        
         counter = 0
-		block_height = 0
+        block_height = 0
         while not self.ui.wallet_rpc_manager.is_ready():
             self.app_process_events(0.5)
             h = int(self.ui.wallet_rpc_manager.block_height)
             if h >  block_height:
                 self.on_new_wallet_update_processed_block_height_event.emit(h, self.ui.target_height)
                 counter = 0
-				block_height = h
+                block_height = h
             if self.ui.wallet_rpc_manager.is_invalid_password():
                 QMessageBox.critical(self.new_wallet_ui, \
                         'Error Importing Wallet',\
@@ -136,7 +139,7 @@ class Hub(QObject):
                 self.ui.reset_wallet()
                 return False
             counter += 1
-            if counter > 60:
+            if counter > 30:
                 QMessageBox.critical(self.new_wallet_ui, \
                         'Error Importing Wallet',\
                         """Error: Unknown error.<br>
@@ -232,8 +235,8 @@ class Hub(QObject):
                     self.wallet_cli_manager.send_command(wallet_password)
                     self.app_process_events(0.5)
                     self.wallet_cli_manager.send_command(mnemonic_seed_language)
-#                   self.app_process_events(0.5)
-#                   self.wallet_cli_manager.send_command("exit")
+#                     self.app_process_events(0.5)
+#                     self.wallet_cli_manager.send_command("exit")
                 else: # restore wallet
                     self.wallet_cli_manager = WalletCliManager(resources_path, \
                                                 wallet_filepath, wallet_log_path, True, restore_height)
@@ -267,7 +270,6 @@ class Hub(QObject):
                                        error_detailed_text)
             self.on_new_wallet_ui_reset_event.emit()
             return
-                
         
         counter = 0
         while not self._is_wallet_files_existed(wallet_filepath):
@@ -288,14 +290,14 @@ class Hub(QObject):
             self.ui.run_wallet_rpc(wallet_password, 1)
             counter = 0
             block_height = 0
-			
+            
             while not self.ui.wallet_rpc_manager.is_ready():
                 self.app_process_events(1)
                 h = int(self.ui.wallet_rpc_manager.block_height)
                 if h >  block_height:
                     self.on_new_wallet_update_processed_block_height_event.emit(h, self.ui.target_height)
                     counter = 0
-					block_height = h
+                    block_height = h
                 if not self.ui.wallet_rpc_manager.is_proc_running():
                     error_detailed_text = self.ui.wallet_rpc_manager.last_error \
                             if self.ui.wallet_rpc_manager.last_error else "Unknown error"
@@ -319,9 +321,9 @@ class Hub(QObject):
                             'Error Creating/Restoring Wallet',\
                             """Error: Wallet files not found!""")    
             self.on_new_wallet_ui_reset_event.emit()
-		def _is_wallet_files_existed(self, wallet_filepath):
+            
+    def _is_wallet_files_existed(self, wallet_filepath):
         return os.path.exists(wallet_filepath) and os.path.exists(wallet_filepath + ".keys")
-          
             
     @Slot()
     def rescan_spent(self):
@@ -464,6 +466,7 @@ class Hub(QObject):
     @Slot(str)
     def copy_text(self, text):
         QApplication.clipboard().setText(text)
+        
         
     @Slot()
     def load_address_book(self):
@@ -665,7 +668,6 @@ class Hub(QObject):
     def paste_seed_words(self):
         text = QApplication.clipboard().text()
         self.on_paste_seed_words_event.emit(text)
-
     
     @Slot()    
     def update_wallet_loading_height(self):
@@ -675,7 +677,8 @@ class Hub(QObject):
         h = int(self.ui.wallet_rpc_manager.block_height)
         if h > self.current_block_height:
             self.on_update_wallet_loading_height_event.emit(h, self.ui.target_height)
-            self.current_block_height = h        
+            self.current_block_height = h
+        
                 
     def update_daemon_status(self, status):
         self.on_daemon_update_status_event.emit(status)
@@ -745,5 +748,5 @@ class Hub(QObject):
     on_load_app_settings_completed_event = Signal(str)
     on_restart_daemon_completed_event = Signal()
     on_paste_seed_words_event = Signal(str)
-	on_update_wallet_loading_height_event = Signal(int, int)
+    on_update_wallet_loading_height_event = Signal(int, int)
     
